@@ -1,5 +1,11 @@
-function(sequelize, DataTypes) {
+module.exports = function(sequelize, DataTypes) {//<Function statements require a function name>.<поместил функцию в объект exports так как функция должна экспортироваться>. Исправлена строка <1> в файле <models\game.js>
     return sequelize.define('game', {
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+            allowNull: false
+        },
         title: {
             type: DataTypes.STRING(25),
             allowNull: false,
