@@ -1,39 +1,46 @@
-var router = require('express').Router();
-var Game = require('../db').import('../models/game');
+const router = require('express').Router();
+const sequelize = require('../db').db;
+const Sequelize = require('../db').dataTypes;
+const Game = require('../models/game')(sequelize, Sequelize); //<require(...).import is not a function>.<убрал import и настройли путь в require>. Исправлена строка <2> в файле <controllers\gamecontroller.js>
+//<require('../models/game') возвращает функцию, но не вызывает её>.<вызвал функцию с параметрами sequelize,Sequelize>. Исправлена строка <5> в файле <controllers\gamecontroller.js>
 
 router.get('/all', (req, res) => {
-    Game.findAll({ where: { owner_id: req.user.id } })
-        .then(
-            function findSuccess(data) {
-                res.status(200).json({
-                    games: games,
-                    message: "Data fetched."
-                })
-            },
-
-            function findFail() {
-                res.status(500).json({
-                    message: "Data not found"
-                })
-            }
-        )
+    Game.findAll({
+        where: {
+            owner_id: req.user.id
+        },
+        raw: true
+    })
+    .then(result => { //logic
+        res.status(200).json({
+            games: result,
+            message: "Data fetched."
+        })
+    })
+    .catch(err => {
+        res.status(500).json({
+            message: "Data not found"
+        })
+    }) 
 })
 
 router.get('/:id', (req, res) => {
-    Game.findOne({ where: { id: req.params.id, owner_id: req.user.id } })
-        .then(
-            function findSuccess(game) {
-                res.status(200).json({
-                    game: game
-                })
-            },
-
-            function findFail(err) {
-                res.status(500).json({
-                    message: "Data not found."
-                })
-            }
-        )
+    Game.findOne({
+        where: {
+            id: req.params.id,
+            owner_id: req.user.id
+        }
+    })
+    .then(game => {
+        res.status(200).json({
+            game: game
+        })
+    })
+    .catch(err => {
+        res.status(500).json({
+            message: "Data not found."
+        })
+    })
 })
 
 router.post('/create', (req, res) => {
@@ -45,18 +52,15 @@ router.post('/create', (req, res) => {
         user_rating: req.body.game.user_rating,
         have_played: req.body.game.have_played
     })
-        .then(
-            function createSuccess(game) {
-                res.status(200).json({
-                    game: game,
-                    message: "Game created."
-                })
-            },
-
-            function createFail(err) {
-                res.status(500).send(err.message)
-            }
-        )
+    .then(game=>{
+        res.status(200).json({
+            game: game,
+            message: "Game created."
+        })
+    })
+    .catch(err=>{
+        res.status(500).send(err.message)
+    })
 })
 
 router.put('/update/:id', (req, res) => {
@@ -66,28 +70,23 @@ router.put('/update/:id', (req, res) => {
         esrb_rating: req.body.game.esrb_rating,
         user_rating: req.body.game.user_rating,
         have_played: req.body.game.have_played
-    },
-        {
-            where: {
-                id: req.params.id,
-                owner_id: req.user
-            }
+    }, {
+        where: {
+            id: req.params.id,
+            owner_id: req.user
+        }
+    })
+    .then(game=>{
+        res.status(200).json({
+            game: game,
+            message: "Successfully updated."
         })
-        .then(
-            function updateSuccess(game) {
-                res.status(200).json({
-                    game: game,
-                    message: "Successfully updated."
-                })
-            },
-
-            function updateFail(err) {
-                res.status(500).json({
-                    message: err.message
-                })
-            }
-
-        )
+    })
+    .catch(err=>{
+        res.status(500).json({
+            message: err.message
+        })
+    })
 })
 
 router.delete('/remove/:id', (req, res) => {
@@ -97,20 +96,17 @@ router.delete('/remove/:id', (req, res) => {
             owner_id: req.user.id
         }
     })
-    .then(
-        function deleteSuccess(game) {
-            res.status(200).json({
-                game: game,
-                message: "Successfully deleted"
-            })
-        },
-
-        function deleteFail(err) {
-            res.status(500).json({
-                error: err.message
-            })
-        }
-    )
+    .then(game=>{
+        res.status(200).json({
+            game: game,
+            message: "Successfully deleted"
+        })
+    })
+    .catch(err=>{
+        res.status(500).json({
+            error: err.message
+        })
+    })
 })
 
-module.exports = routers;
+module.exports = router; //<routers is not defined>.<зменил routers на router>. Исправлена строка <116> в файле <controllers\gamecontroller.js>
